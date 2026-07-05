@@ -9,6 +9,8 @@ import Dispositivos from './pages/Dispositivos'
 import Cuenta from './pages/Cuenta'
 import ReportarIncidencia from './pages/ReportarIncidencia'
 import Contacto from './pages/Contacto'
+import PuntosCanjeables from './pages/PuntosCanjeables'
+import Terminos from './pages/Terminos'
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
           <Route path="/dispositivos" element={<Dispositivos />} />
           <Route path="/cuenta" element={<Cuenta />} />
           <Route path="/reportar" element={<ReportarIncidencia />} />
+          <Route path="/puntos" element={<PuntosCanjeables />} />
+          <Route path="/terminos" element={<Terminos />} />
         </Routes>
       </div>
     </BrowserRouter>
@@ -33,3 +37,7 @@ function App() {
 }
 
 export default App
+
+//git add .
+//git commit -m "Describe aquí los cambios"
+//git push origin main

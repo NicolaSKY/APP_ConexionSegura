@@ -3,20 +3,14 @@ import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 
 const notificaciones = [
-  { id: 1, icon: '💳', titulo: '¡Paga antes del 2 de Julio!', desc: 'Tu factura de S/ 179.70 vence pronto.', tiempo: 'Hace 5 min', leida: false },
+  { id: 1, icon: '💳', titulo: '¡Paga antes del 2 de Agosto!', desc: 'Tu factura vence pronto. Evita cortes de servicio.', tiempo: 'Hace 5 min', leida: false },
   { id: 2, icon: '⚠️', titulo: 'Mantenimiento programado', desc: 'El 5 de Julio habrá mantenimiento en tu zona.', tiempo: 'Hace 1h', leida: false },
   { id: 3, icon: '🎁', titulo: '¡Duplica tu velocidad gratis!', desc: 'Por ser cliente fiel, disfruta 2x velocidad este fin de semana.', tiempo: 'Hace 3h', leida: true },
 ]
 
-const historialPagos = [
-  { mes: 'Junio 2026', monto: 'S/ 179.70', estado: 'Pagado', fecha: '02 Jun 2026' },
-  { mes: 'Mayo 2026', monto: 'S/ 179.70', estado: 'Pagado', fecha: '02 May 2026' },
-  { mes: 'Abril 2026', monto: 'S/ 179.70', estado: 'Pagado', fecha: '02 Abr 2026' },
-]
-
 export default function Cuenta() {
   const navigate = useNavigate()
-  const { darkMode, setDarkMode } = useApp()
+  const { darkMode, setDarkMode, servicios, puntos, historialPagos, totalMensual, fechaVencimiento, fechaPago } = useApp()
   const [notifs, setNotifs] = useState(notificaciones)
   const [showNotif, setShowNotif] = useState(false)
   const [notifOn, setNotifOn] = useState(true)
@@ -36,6 +30,9 @@ export default function Cuenta() {
     setPassExito(true)
     setTimeout(() => { setPassExito(false); setShowCambiarPass(false); setPassActual(''); setPassNueva('') }, 2000)
   }
+
+  // Servicios activos para mostrar en plan actual
+  const serviciosActivos = servicios.filter(s => s.estado === 'Activo')
 
   const c = {
     bg: darkMode ? '#0a0f1e' : '#f0f4ff',
@@ -121,21 +118,44 @@ export default function Cuenta() {
 
       <div style={{ padding: '15px', marginTop: '-20px' }}>
 
-        {/* Facturación */}
+        {/* Facturación — sincronizada con servicios */}
         <div style={{ background: c.card, borderRadius: '20px', padding: '18px', marginBottom: '15px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
           <h2 style={{ fontSize: '15px', color: c.text, marginBottom: '15px', fontWeight: '700' }}>💳 Facturación</h2>
           <div style={{ background: darkMode ? 'linear-gradient(135deg, #0d1b2e, #1a237e)' : 'linear-gradient(135deg, #1a237e, #0288d1)', borderRadius: '15px', padding: '15px', color: 'white', marginBottom: '12px' }}>
-            <p style={{ fontSize: '11px', opacity: 0.8, marginBottom: '4px' }}>PRÓXIMO PAGO</p>
-            <p style={{ fontSize: '32px', fontWeight: '900' }}>S/ 179.70</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
-              <p style={{ fontSize: '12px', opacity: 0.8 }}>Vence el 2 de Julio 2026</p>
-              <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '800' }}>Al día ✅</span>
+            <p style={{ fontSize: '11px', opacity: 0.8, marginBottom: '4px', letterSpacing: '1px' }}>PRÓXIMO PAGO</p>
+            <p style={{ fontSize: '36px', fontWeight: '900' }}>S/ {totalMensual.toFixed(2)}</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+              <div>
+                <p style={{ fontSize: '11px', opacity: 0.7 }}>Fecha límite de pago</p>
+                <p style={{ fontSize: '13px', fontWeight: '700' }}>{fechaPago}</p>
+              </div>
+              <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: '800' }}>Al día ✅</span>
             </div>
           </div>
+
+          {/* Desglose por servicio */}
+          <div style={{ background: c.rowBg, borderRadius: '12px', padding: '12px', marginBottom: '12px', border: `1px solid ${c.border}` }}>
+            <p style={{ fontSize: '12px', fontWeight: '700', color: c.text, marginBottom: '10px' }}>📊 Desglose mensual</p>
+            {servicios.filter(s => s.estado === 'Activo').map((s, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: i < serviciosActivos.length - 1 ? `1px solid ${c.border}` : 'none' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '16px' }}>{s.icon}</span>
+                  <p style={{ fontSize: '12px', color: c.subtext }}>{s.nombre}</p>
+                </div>
+                <p style={{ fontSize: '13px', fontWeight: '700', color: c.text }}>S/ {s.precio.toFixed(2)}</p>
+              </div>
+            ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '10px', borderTop: `2px solid ${c.border}` }}>
+              <p style={{ fontSize: '13px', fontWeight: '800', color: c.text }}>Total</p>
+              <p style={{ fontSize: '16px', fontWeight: '900', color: c.accent }}>S/ {totalMensual.toFixed(2)}</p>
+            </div>
+          </div>
+
           <button onClick={() => setShowHistorial(!showHistorial)}
             style={{ width: '100%', padding: '12px', background: c.rowBg, border: `1px solid ${c.border}`, borderRadius: '12px', color: c.text, fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
             {showHistorial ? '▲ Ocultar historial' : '▼ Ver historial de pagos'}
           </button>
+
           {showHistorial && (
             <div style={{ marginTop: '12px' }}>
               {historialPagos.map((p, i) => (
@@ -145,8 +165,10 @@ export default function Cuenta() {
                     <p style={{ fontSize: '11px', color: c.subtext }}>{p.fecha}</p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '14px', fontWeight: '800', color: c.text }}>{p.monto}</p>
-                    <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '700' }}>✅ {p.estado}</span>
+                    <p style={{ fontSize: '14px', fontWeight: '800', color: c.text }}>S/ {p.monto.toFixed(2)}</p>
+                    <span style={{ background: p.nuevo ? '#e3f2fd' : p.reactivacion ? '#fff3e0' : '#e8f5e9', color: p.nuevo ? '#1565c0' : p.reactivacion ? '#e65100' : '#2e7d32', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '700' }}>
+                      {p.nuevo ? '🆕 Nuevo' : p.reactivacion ? '⚡ Reactivación' : '✅ Pagado'}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -154,19 +176,29 @@ export default function Cuenta() {
           )}
         </div>
 
-        {/* Plan actual */}
+        {/* Plan actual — sincronizado con servicios */}
         <div style={{ background: c.card, borderRadius: '20px', padding: '18px', marginBottom: '15px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
           <h2 style={{ fontSize: '15px', color: c.text, marginBottom: '15px', fontWeight: '700' }}>📦 Plan Actual</h2>
           <div style={{ background: c.rowBg, borderRadius: '12px', padding: '15px', marginBottom: '12px', border: `1px solid ${c.border}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <p style={{ fontSize: '15px', fontWeight: '800', color: c.accent }}>Pack TelNet Premium</p>
-              <span style={{ background: '#e3f2fd', color: '#1565c0', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '700' }}>⭐ Premium</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <p style={{ fontSize: '15px', fontWeight: '800', color: c.accent }}>Pack TelNet</p>
+              <span style={{ background: '#e3f2fd', color: '#1565c0', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '700' }}>
+                {serviciosActivos.length === 4 ? '👑 Ultra' : serviciosActivos.length >= 3 ? '⭐ Premium' : '🔵 Básico'}
+              </span>
             </div>
-            <p style={{ fontSize: '12px', color: c.subtext, marginBottom: '10px' }}>Internet 150 Mbps + Cable TV + Telefonía Móvil</p>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {['🌐 Internet', '📺 Cable TV', '📱 Móvil'].map((tag, i) => (
-                <span key={i} style={{ background: c.border, color: c.subtext, padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600' }}>{tag}</span>
+
+            {/* Servicios activos dinámicos */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+              {serviciosActivos.map((s, i) => (
+                <span key={i} style={{ background: darkMode ? s.color + '30' : s.bg, color: s.color, padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '700', border: `1px solid ${s.color}30` }}>
+                  {s.icon} {s.nombre.split(' ')[0]}
+                </span>
               ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '10px', borderTop: `1px solid ${c.border}` }}>
+              <p style={{ fontSize: '12px', color: c.subtext }}>📅 Vence el</p>
+              <p style={{ fontSize: '13px', fontWeight: '700', color: c.text }}>{fechaVencimiento}</p>
             </div>
           </div>
           <button onClick={() => navigate('/servicios')}
@@ -193,17 +225,23 @@ export default function Cuenta() {
           ))}
         </div>
 
-        {/* Puntos TelNet */}
-        <div style={{ background: 'linear-gradient(135deg, #ff6f00, #ff8f00)', borderRadius: '20px', padding: '18px', marginBottom: '15px', color: 'white' }}>
+        {/* Puntos TelNet — sincronizados */}
+        <div onClick={() => navigate('/puntos')}
+          style={{ background: 'linear-gradient(135deg, #ff6f00, #ff8f00)', borderRadius: '20px', padding: '18px', marginBottom: '15px', color: 'white', cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <p style={{ fontSize: '12px', opacity: 0.9, marginBottom: '4px' }}>⭐ PUNTOS TELNET</p>
-              <p style={{ fontSize: '36px', fontWeight: '900' }}>500 pts</p>
-              <p style={{ fontSize: '12px', opacity: 0.9 }}>Canjéalos por descuentos</p>
+              <p style={{ fontSize: '36px', fontWeight: '900' }}>{puntos} pts</p>
+              <p style={{ fontSize: '12px', opacity: 0.9 }}>Toca para canjear premios</p>
             </div>
-            <button style={{ background: 'rgba(255,255,255,0.25)', border: 'none', borderRadius: '12px', padding: '12px 16px', color: 'white', fontSize: '13px', fontWeight: '800', cursor: 'pointer' }}>
-              Canjear →
-            </button>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '12px', padding: '12px 16px', marginBottom: '6px' }}>
+                <p style={{ fontSize: '13px', fontWeight: '800' }}>Canjear →</p>
+              </div>
+              <p style={{ fontSize: '10px', opacity: 0.8 }}>
+                {puntos >= 250 ? '🥇 Gold' : puntos >= 100 ? '🥈 Silver' : '🥉 Bronze'}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -230,7 +268,7 @@ export default function Cuenta() {
           {[
             { icon: '🔒', label: 'Cambiar contraseña', action: () => setShowCambiarPass(true) },
             { icon: '❓', label: 'Ayuda y preguntas frecuentes', action: () => navigate('/soporte') },
-            { icon: '📄', label: 'Términos y condiciones', action: () => {} },
+            { icon: '📄', label: 'Términos y condiciones', action: () => navigate('/terminos') },
           ].map((op, i) => (
             <div key={i} onClick={op.action}
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 18px', borderBottom: i < 2 ? `1px solid ${c.border}` : 'none', cursor: 'pointer' }}>
